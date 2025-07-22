@@ -16,6 +16,8 @@
       margin-top: 1em;
       max-width: 100%;
       height: auto;
+      image-rendering: crisp-edges; /* Keep sharp edges */
+      image-rendering: pixelated;   /* Prevent blurring */
     }
     input, button {
       margin: 1em;
@@ -54,7 +56,7 @@
     const downloadBtn = document.getElementById("download");
 
     const overlay = new Image();
-    overlay.src = "logo.png"; // Make sure your 1080x1080 overlay is in the same folder
+    overlay.src = "logo.png"; // Replace with 1080x1080 overlay file
 
     upload.addEventListener("change", function () {
       const file = this.files[0];
@@ -73,27 +75,25 @@
           const cropX = (userImg.width - minSide) / 2;
           const cropY = (userImg.height - minSide) / 2;
 
-          // Draw the uploaded image, resized to 1080x1080
           ctx.drawImage(userImg, cropX, cropY, minSide, minSide, 0, 0, size, size);
 
-          // Add gradient fade (bottom darkening effect)
+          // Bottom gradient
           const gradient = ctx.createLinearGradient(0, size, 0, size * 0.6);
-          gradient.addColorStop(0, "rgba(0,0,0,0.5)");  // Dark at bottom
-          gradient.addColorStop(1, "rgba(0,0,0,0)");    // Transparent at top
+          gradient.addColorStop(0, "rgba(0,0,0,0.5)");
+          gradient.addColorStop(1, "rgba(0,0,0,0)");
           ctx.fillStyle = gradient;
           ctx.fillRect(0, 0, size, size);
 
-          // Draw overlay filter on top
+          // Draw the overlay exactly at 1080x1080, no scaling
+          overlay.onload = () => {
+            ctx.drawImage(overlay, 0, 0, size, size);
+            canvas.style.display = "block";
+            downloadBtn.style.display = "inline-block";
+          };
           if (overlay.complete) {
             ctx.drawImage(overlay, 0, 0, size, size);
             canvas.style.display = "block";
             downloadBtn.style.display = "inline-block";
-          } else {
-            overlay.onload = () => {
-              ctx.drawImage(overlay, 0, 0, size, size);
-              canvas.style.display = "block";
-              downloadBtn.style.display = "inline-block";
-            };
           }
         };
         userImg.src = e.target.result;
@@ -104,17 +104,14 @@
     downloadBtn.addEventListener("click", function () {
       const imageDataURL = canvas.toDataURL("image/png");
 
-      // Open in new tab (for mobile long-press saving)
       const newTab = window.open();
       newTab.document.write('<img src="' + imageDataURL + '" style="width:100%">');
 
-      // Trigger direct download (for desktop)
       const link = document.createElement("a");
       link.download = "coracao-azul.png";
       link.href = imageDataURL;
       link.click();
 
-      // Notify user how to save (helpful on mobile)
       setTimeout(() => {
         alert("Imagem criada! No telemóvel, pressione a imagem aberta e selecione 'Guardar na Galeria'.");
       }, 300);
