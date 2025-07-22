@@ -54,7 +54,7 @@
     const downloadBtn = document.getElementById("download");
 
     const overlay = new Image();
-    overlay.src = "logo.png"; // Your full-size 1080x1080 PNG overlay
+    overlay.src = "logo.png"; // Make sure your 1080x1080 overlay is in the same folder
 
     upload.addEventListener("change", function () {
       const file = this.files[0];
@@ -68,19 +68,22 @@
           canvas.width = canvas.height = size;
           ctx.clearRect(0, 0, size, size);
 
-          // Crop uploaded image to square
+          // Crop uploaded image to a square
           const minSide = Math.min(userImg.width, userImg.height);
           const cropX = (userImg.width - minSide) / 2;
           const cropY = (userImg.height - minSide) / 2;
 
-          // Draw cropped & resized image
-          ctx.drawImage(
-            userImg,
-            cropX, cropY, minSide, minSide,
-            0, 0, size, size
-          );
+          // Draw the uploaded image, resized to 1080x1080
+          ctx.drawImage(userImg, cropX, cropY, minSide, minSide, 0, 0, size, size);
 
-          // Draw overlay
+          // Add gradient fade (bottom darkening effect)
+          const gradient = ctx.createLinearGradient(0, size, 0, size * 0.6);
+          gradient.addColorStop(0, "rgba(0,0,0,0.5)");  // Dark at bottom
+          gradient.addColorStop(1, "rgba(0,0,0,0)");    // Transparent at top
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, size, size);
+
+          // Draw overlay filter on top
           if (overlay.complete) {
             ctx.drawImage(overlay, 0, 0, size, size);
             canvas.style.display = "block";
@@ -101,17 +104,17 @@
     downloadBtn.addEventListener("click", function () {
       const imageDataURL = canvas.toDataURL("image/png");
 
-      // Open in new tab (mobile users can long-press to save)
+      // Open in new tab (for mobile long-press saving)
       const newTab = window.open();
       newTab.document.write('<img src="' + imageDataURL + '" style="width:100%">');
 
-      // Also trigger download (desktop)
+      // Trigger direct download (for desktop)
       const link = document.createElement("a");
       link.download = "coracao-azul.png";
       link.href = imageDataURL;
       link.click();
 
-      // Alert for users
+      // Notify user how to save (helpful on mobile)
       setTimeout(() => {
         alert("Imagem criada! No telemóvel, pressione a imagem aberta e selecione 'Guardar na Galeria'.");
       }, 300);
